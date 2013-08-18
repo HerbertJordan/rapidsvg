@@ -8,6 +8,7 @@
 
 #include "line.h"
 #include "polygon.h"
+#include "ellipse.h"
 
 namespace rapidsvg {
 
@@ -27,8 +28,13 @@ public:
 
 	// Lines in the SVG.
 	std::vector<Line> lines;
+
 	// Polygons in the SVG.
 	std::vector<Polygon> polygons;
+
+	// Ellipses in the SVG
+	std::vector<Ellipse> ellipses;
+
 private:
 	std::string filename;
 	double width, height;

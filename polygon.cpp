@@ -25,7 +25,7 @@ void Polygon::parse_style_entry(char* style)
 	}
 
 	if (strcmp(name, "fill") == 0) {
-		parse_color(value, &this->r, &this->g, &this->b);
+		parse_color(value, &this->fr, &this->fg, &this->fb);
 	}
 }
 

@@ -64,6 +64,9 @@ void parse_color(const char* color, float* r, float* g, float* b)
 	if (std::strcmp(color, "black") == 0) {
 		*r = 0; *g = 0; *b = 0;
 	}
+	else if (std::strcmp(color, "white") == 0) {
+		*r = 255; *g = 255; *b = 255;
+	}
 	else if (std::strcmp(color, "red") == 0) {
 		*r = 255; *g = 0; *b = 0;
 	}
@@ -209,7 +212,7 @@ void SVGFile::load(const std::string& input_filename)
 				polygons.push_back(Polygon());
 				Polygon& polygon = polygons.back();
 
-				// To through the line attributes.
+				// Go through the line attributes.
 				for (xml_attribute<> *attr = child->first_attribute();
 						attr; attr = attr->next_attribute())
 				{
@@ -219,6 +222,57 @@ void SVGFile::load(const std::string& input_filename)
 					else if (strcmp(attr->name(), "style") == 0) {
 						// Process this style string.
 						polygon.parse_style(attr->value());
+					}
+					else if (strcmp(attr->name(), "fill") == 0) {
+						// Process fill attribute
+						if (strcmp(attr->value(), "none") == 0) {
+							polygon.fill = false;
+						} else {
+							polygon.fill = true;
+							parse_color(attr->value(), &polygon.fr, &polygon.fg, &polygon.fb);
+						}
+					}
+					else if (strcmp(attr->name(), "stroke") == 0) {
+						// Process fill attribute
+						if (strcmp(attr->value(), "none") == 0) {
+							polygon.stroke = false;
+						} else {
+							polygon.stroke = true;
+							parse_color(attr->value(), &polygon.sr, &polygon.sg, &polygon.sb);
+						}
+					}
+				}
+
+//				std::cout << "Created polygon:\n";
+//				for(const auto& cur : polygon.points) {
+//					std::cout << "\t" << cur.first << "/" << cur.second << "\n";
+//				}
+
+			}
+			else if (strcmp(child->name(), "ellipse")) {
+				// Add ellipse to the vector of ellipses
+				ellipses.push_back(Ellipse());
+				Ellipse& ellipse = ellipses.back();
+
+				// Go through the ellipse attributes.
+				for (xml_attribute<> *attr = child->first_attribute();
+						attr; attr = attr->next_attribute())
+				{
+					if (strcmp(attr->name(), "cx") == 0) {
+						ellipse.cx = float(atof(attr->value()));
+					}
+					else if (strcmp(attr->name(), "cy") == 0) {
+						ellipse.cy = float(atof(attr->value()));
+					}
+					else if (strcmp(attr->name(), "rx") == 0) {
+						ellipse.rx = float(atof(attr->value()));
+					}
+					else if (strcmp(attr->name(), "ry") == 0) {
+						ellipse.ry = float(atof(attr->value()));
+					}
+					else if (strcmp(attr->name(), "style") == 0) {
+						// Process this style string.
+						ellipse.parse_style(attr->value());
 					}
 				}
 			}
@@ -230,6 +284,7 @@ void SVGFile::load(const std::string& input_filename)
 	std::cerr << "SVG is " << this->width << " x " << this->height << "\n";
 	std::cerr << "Found " << lines.size() << " lines.\n";
 	std::cerr << "Found " << polygons.size() << " polygons.\n";
+	std::cerr << "Found " << ellipses.size() << " ellipses.\n";
 }
 
 }

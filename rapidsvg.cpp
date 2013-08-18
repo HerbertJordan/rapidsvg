@@ -188,11 +188,27 @@ void display(void)
 	glHint( GL_LINE_SMOOTH_HINT, GL_NICEST );
 	glHint( GL_POLYGON_SMOOTH_HINT, GL_NICEST );
 
+
+	// render filled polygon
 	for (auto& polygon : svg_file.polygons) {
+		if (!polygon.fill) continue;
+
 		glBegin(GL_POLYGON);
-		glColor3d(polygon.r, polygon.g, polygon.b);
+		glColor3f(polygon.fr, polygon.fg, polygon.fb);
 		for (auto& point : polygon.points) {
-			glVertex2d(point.first, point.second);
+			glVertex2f(point.first, point.second);
+		}
+		glEnd();
+	}
+
+	// render line of polygon
+	for (auto& polygon : svg_file.polygons) {
+		if (!polygon.stroke) continue;
+
+		glBegin(GL_LINE_LOOP);
+		glColor3f(polygon.sr, polygon.sg, polygon.sb);
+		for (auto& point : polygon.points) {
+			glVertex2f(point.first, point.second);
 		}
 		glEnd();
 	}
@@ -201,6 +217,16 @@ void display(void)
 		glColor3d(line.r, line.g, line.b);
 		draw_line(line.x1, line.y1, line.x2, line.y2, line.width, line.width);
 	}
+
+	// draw a bounding box
+//	glBegin(GL_POLYGON);
+//	glColor3d(0,100,100);
+//	glVertex2f(0,0);
+//	glVertex2f(0,svg_file.get_width());
+//	glVertex2f(svg_file.get_height(),svg_file.get_width());
+//	glVertex2f(svg_file.get_height(),0);
+//	glEnd();
+
 
 	glDisable(GL_BLEND); //restore blending options
 

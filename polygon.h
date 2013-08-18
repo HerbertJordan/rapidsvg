@@ -11,10 +11,12 @@ namespace rapidsvg {
 class Polygon
 {
 public:
-	Polygon() : r(0), g(0), b(0)
+	Polygon() : sr(0), sg(0), sb(0), fr(0), fg(0), fb(0), stroke(true), fill(true)
 	{ }
 	std::vector<std::pair<float, float> > points;
-	float r, g, b;
+	float sr, sg, sb;			// stroke colour
+	float fr, fg, fb;			// fill colour
+	bool stroke, fill;
 
 	// Parses a style string and modifies the polygon.
 	// Also modifies the string itself.
