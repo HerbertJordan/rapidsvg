@@ -59,37 +59,37 @@ int hex_to_dec(char d1)
 	throw std::runtime_error(err);
 }
 
-void parse_color(const char* color, float* r, float* g, float* b)
-{
+void parse_color(const char* color, Color& c) {
+
 	if (std::strcmp(color, "black") == 0) {
-		*r = 0; *g = 0; *b = 0;
+		c = BLACK;
 	}
 	else if (std::strcmp(color, "white") == 0) {
-		*r = 255; *g = 255; *b = 255;
+		c = WHITE;
 	}
 	else if (std::strcmp(color, "red") == 0) {
-		*r = 255; *g = 0; *b = 0;
+		c = (Color){255,0,0};
 	}
 	else if (std::strcmp(color, "green") == 0) {
-		*r = 0; *g = 255; *b = 0;
+		c = (Color){0,255,0};
 	}
 	else if (std::strcmp(color, "blue") == 0) {
-		*r = 0; *g = 0; *b = 255;
+		c = (Color){0,0,255};
 	}
 	else if (std::strcmp(color, "yellow") == 0) {
-		*r = 255; *g = 255; *b = 0;
+		c = (Color){255,255,0};
 	}
 	else if (strlen(color) == 7 && color[0] == '#') {
 		// Hexadecimal color.
-		*r = float(15 * hex_to_dec(color[1]) + hex_to_dec(color[2])) / 255.0f;
-		*g = float(15 * hex_to_dec(color[3]) + hex_to_dec(color[4])) / 255.0f;
-		*b = float(15 * hex_to_dec(color[5]) + hex_to_dec(color[6])) / 255.0f;
+		c.r = float(15 * hex_to_dec(color[1]) + hex_to_dec(color[2])) / 255.0f;
+		c.g = float(15 * hex_to_dec(color[3]) + hex_to_dec(color[4])) / 255.0f;
+		c.b = float(15 * hex_to_dec(color[5]) + hex_to_dec(color[6])) / 255.0f;
 	}
 	else if (strlen(color) == 5 && color[0] == '#' && color[1] == ' ') {
 		// ?
-		*r = 0;
-		*g = 0;
-		*b = 0;
+		c.r = 0;
+		c.g = 0;
+		c.b = 0;
 	}
 	else {
 		std::string err = "Invalid color : ";
@@ -229,16 +229,16 @@ void SVGFile::load(const std::string& input_filename)
 							polygon.fill = false;
 						} else {
 							polygon.fill = true;
-							parse_color(attr->value(), &polygon.fr, &polygon.fg, &polygon.fb);
+							parse_color(attr->value(), polygon.fillColor);
 						}
 					}
 					else if (strcmp(attr->name(), "stroke") == 0) {
 						// Process fill attribute
 						if (strcmp(attr->value(), "none") == 0) {
-							polygon.stroke = false;
+							polygon.borderLine = false;
 						} else {
-							polygon.stroke = true;
-							parse_color(attr->value(), &polygon.sr, &polygon.sg, &polygon.sb);
+							polygon.borderLine = true;
+							parse_color(attr->value(), polygon.strokeColor);
 						}
 					}
 				}
@@ -249,7 +249,7 @@ void SVGFile::load(const std::string& input_filename)
 //				}
 
 			}
-			else if (strcmp(child->name(), "ellipse")) {
+			else if (strcmp(child->name(), "ellipse") == 0) {
 				// Add ellipse to the vector of ellipses
 				ellipses.push_back(Ellipse());
 				Ellipse& ellipse = ellipses.back();
@@ -266,6 +266,7 @@ void SVGFile::load(const std::string& input_filename)
 					}
 					else if (strcmp(attr->name(), "rx") == 0) {
 						ellipse.rx = float(atof(attr->value()));
+						std::cout << "Updated rx = " << ellipse.rx << "\n";
 					}
 					else if (strcmp(attr->name(), "ry") == 0) {
 						ellipse.ry = float(atof(attr->value()));
@@ -273,6 +274,24 @@ void SVGFile::load(const std::string& input_filename)
 					else if (strcmp(attr->name(), "style") == 0) {
 						// Process this style string.
 						ellipse.parse_style(attr->value());
+					}
+					else if (strcmp(attr->name(), "fill") == 0) {
+						// Process fill attribute
+						if (strcmp(attr->value(), "none") == 0) {
+							ellipse.fill = false;
+						} else {
+							ellipse.fill = true;
+							parse_color(attr->value(), ellipse.fillColor);
+						}
+					}
+					else if (strcmp(attr->name(), "stroke") == 0) {
+						// Process fill attribute
+						if (strcmp(attr->value(), "none") == 0) {
+							ellipse.borderLine = false;
+						} else {
+							ellipse.borderLine = true;
+							parse_color(attr->value(), ellipse.strokeColor);
+						}
 					}
 				}
 			}

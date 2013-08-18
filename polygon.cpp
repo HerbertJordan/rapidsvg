@@ -5,10 +5,36 @@
 #include <iostream>
 #include <stdexcept>
 
+#include "glut.h"
 #include "polygon.h"
 #include "svg_file.h"
 
 namespace rapidsvg {
+
+
+void Polygon::draw() const {
+
+	// render area
+	if (fill) {
+		glBegin(GL_POLYGON);
+		glColor3f(fillColor.r, fillColor.g, fillColor.b);
+		for (auto& point : points) {
+			glVertex2f(point.first, point.second);
+		}
+		glEnd();
+	}
+
+	// render borderline
+	if (borderLine) {
+		glBegin(GL_LINE_LOOP);
+		glColor3f(strokeColor.r, strokeColor.g, strokeColor.b);
+		for (auto& point : points) {
+			glVertex2f(point.first, point.second);
+		}
+		glEnd();
+	}
+
+}
 
 void Polygon::parse_style_entry(char* style)
 {
@@ -25,7 +51,10 @@ void Polygon::parse_style_entry(char* style)
 	}
 
 	if (strcmp(name, "fill") == 0) {
-		parse_color(value, &this->fr, &this->fg, &this->fb);
+		parse_color(value, fillColor);
+	}
+	else if (strcmp(name, "stroke") == 0) {
+		parse_color(value, strokeColor);
 	}
 }
 

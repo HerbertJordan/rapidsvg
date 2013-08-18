@@ -139,6 +139,7 @@ ENDIF (CMAKE_BUILD_TYPE STREQUAL "Release")
 
 ADD_EXECUTABLE(rapidsvg
   rapidsvg.cpp
+  color.cpp
   line.cpp
   polygon.cpp
   ellipse.cpp

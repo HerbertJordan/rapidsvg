@@ -1,18 +1,21 @@
-#ifndef RAPIDSVG_LINE_H
-#define RAPIDSVG_LINE_H
+#pragma once
+
+#include "shape.h"
 
 namespace rapidsvg {
 
 // Represents a line in the SVG file.
-class Line
+class Line : public Shape
 {
 public:
 	Line() : x1(0), y1(0), x2(0), y2(0),
-	         width(1), r(0), g(0), b(0)
+	         width(1)
 	{ }
+
 	float x1, y1, x2, y2;
 	float width;
-	float r, g, b;
+
+	virtual void draw() const;
 
 	// Parses a style string and modifies the line.
 	// Also modifies the string itself.
@@ -24,4 +27,3 @@ private:
 
 }
 
-#endif

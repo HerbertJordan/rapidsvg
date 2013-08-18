@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 
+#include "color.h"
 #include "line.h"
 #include "polygon.h"
 #include "ellipse.h"
@@ -40,7 +41,7 @@ private:
 	double width, height;
 };
 
-void parse_color(const char* color, float* r, float* g, float* b);
+void parse_color(const char* color, Color& c);
 
 }
 

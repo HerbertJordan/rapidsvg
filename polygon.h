@@ -1,22 +1,21 @@
 // Petter Strandmark 2013.
 
-#ifndef RAPIDSVG_POLYGON_H
-#define RAPIDSVG_POLYGON_H
+#pragma once
 
 #include <vector>
+#include "shape.h"
 
 namespace rapidsvg {
 
 // Represents a line in the SVG file.
-class Polygon
+class Polygon : public Shape
 {
 public:
-	Polygon() : sr(0), sg(0), sb(0), fr(0), fg(0), fb(0), stroke(true), fill(true)
-	{ }
+	Polygon() { }
+
 	std::vector<std::pair<float, float> > points;
-	float sr, sg, sb;			// stroke colour
-	float fr, fg, fb;			// fill colour
-	bool stroke, fill;
+
+	virtual void draw() const;
 
 	// Parses a style string and modifies the polygon.
 	// Also modifies the string itself.
@@ -32,5 +31,3 @@ private:
 };
 
 }
-
-#endif

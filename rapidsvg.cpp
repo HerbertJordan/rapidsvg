@@ -150,25 +150,6 @@ void keyboard (unsigned char key, int x, int y)
 	}
 }
 
-// Draws a line between (x1,y1) - (x2,y2) with a start thickness of t1 and
-// end thickness t2.
-void draw_line(float x1, float y1, float x2, float y2, float t1, float t2)
-{
-	float angle = std::atan2(y2 - y1, x2 - x1);
-	float t2sina1 = t1 / 2 * std::sin(angle);
-	float t2cosa1 = t1 / 2 * std::cos(angle);
-	float t2sina2 = t2 / 2 * std::sin(angle);
-	float t2cosa2 = t2 / 2 * std::cos(angle);
-
-	glBegin(GL_TRIANGLES);
-	glVertex2f(x1 + t2sina1, y1 - t2cosa1);
-	glVertex2f(x2 + t2sina2, y2 - t2cosa2);
-	glVertex2f(x2 - t2sina2, y2 + t2cosa2);
-	glVertex2f(x2 - t2sina2, y2 + t2cosa2);
-	glVertex2f(x1 - t2sina1, y1 + t2cosa1);
-	glVertex2f(x1 + t2sina1, y1 - t2cosa1);
-	glEnd();
-}
 
 void display(void)
 {
@@ -189,33 +170,17 @@ void display(void)
 	glHint( GL_POLYGON_SMOOTH_HINT, GL_NICEST );
 
 
-	// render filled polygon
+	// render polygons
 	for (auto& polygon : svg_file.polygons) {
-		if (!polygon.fill) continue;
-
-		glBegin(GL_POLYGON);
-		glColor3f(polygon.fr, polygon.fg, polygon.fb);
-		for (auto& point : polygon.points) {
-			glVertex2f(point.first, point.second);
-		}
-		glEnd();
+		polygon.draw();
 	}
 
-	// render line of polygon
-	for (auto& polygon : svg_file.polygons) {
-		if (!polygon.stroke) continue;
-
-		glBegin(GL_LINE_LOOP);
-		glColor3f(polygon.sr, polygon.sg, polygon.sb);
-		for (auto& point : polygon.points) {
-			glVertex2f(point.first, point.second);
-		}
-		glEnd();
+	for (auto& ellipse : svg_file.ellipses) {
+		ellipse.draw();
 	}
 
 	for (auto& line : svg_file.lines) {
-		glColor3d(line.r, line.g, line.b);
-		draw_line(line.x1, line.y1, line.x2, line.y2, line.width, line.width);
+		line.draw();
 	}
 
 	// draw a bounding box
