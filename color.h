@@ -11,9 +11,11 @@ namespace rapidsvg {
 		Color() : r(0), g(0), b(0) {}
 		Color(float r, float g, float b) : r(r), g(g), b(b) {}
 		Color(const Color& other) : r(other.r), g(other.g), b(other.b) {}
+		operator bool() const;
 	};
 
 	// some color constants
+	extern const Color NONE;
 	extern const Color BLACK;
 	extern const Color WHITE;
 

@@ -63,10 +63,10 @@ void center_display(int view_x, int view_y, float radius_x, float radius_y)
 	glutPostRedisplay();
 }
 
-void center_display_zoom(float radius_x, float radius_y)
+void center_display_zoom(float x, float y, float radius_x, float radius_y)
 {
-	float x = (view_right + view_left) / 2.0f;
-	float y = (view_top + view_bottom) / 2.0f;
+	//float x = (view_right + view_left) / 2.0f;
+	//float y = (view_top + view_bottom) / 2.0f;
 
 	view_left   = x - radius_x;
 	view_right  = x + radius_x;
@@ -109,6 +109,27 @@ void mouse_move(int x, int y)
 	}
 }
 
+void scale(float sx, float sy) {
+	float radius_x = (view_right - view_left) / 2.0f;
+	float radius_y = (view_top - view_bottom) / 2.0f;
+
+	radius_x *= sx;
+	radius_y *= sy;
+
+	// compute center of scaling
+	float window_width  = float(glutGet(GLUT_WINDOW_WIDTH));
+	float window_height = float(glutGet(GLUT_WINDOW_HEIGHT));
+
+	float center_x = view_left + (view_right - view_left);
+	float center_y = view_top + (view_bottom - view_top);
+
+	center_display_zoom(center_x, center_y, radius_x, radius_y);
+}
+
+void scale(float s) {
+	scale(s,s);
+}
+
 void mouse(int button, int action, int x, int y)
 {
 	//std::cerr << "button=" << button << " action=" << action << " x=" << x << " y=" << y << '\n';
@@ -136,7 +157,27 @@ void mouse(int button, int action, int x, int y)
 			radius_x /= fac;
 			radius_y /= fac;
 		}
-		center_display_zoom(radius_x, radius_y);
+
+		// compute center of scaling
+		float window_width  = float(glutGet(GLUT_WINDOW_WIDTH));
+		float window_height = float(glutGet(GLUT_WINDOW_HEIGHT));
+
+		float relative_x = (x / window_width);
+		float relative_y = (y / window_height);
+
+		if (button == 4) {
+			relative_x = 1 - relative_x;
+			relative_y = 1 - relative_y;
+		}
+
+		// dampening by 50%
+		relative_x = (relative_x + 0.5) / 2.0;
+		relative_y = (relative_y + 0.5) / 2.0;
+
+		float center_x = view_left + (view_right - view_left) * relative_x;
+		float center_y = view_top + (view_bottom - view_top) * relative_y;
+
+		center_display_zoom(center_x, center_y, radius_x, radius_y);
 	}
 }
 
@@ -148,6 +189,17 @@ void keyboard (unsigned char key, int x, int y)
 		svg_file.reload();
 		glutPostRedisplay();
 	}
+
+	if (key == 'x') {
+		scale(1.1f, 1.0f);
+		glutPostRedisplay();
+	}
+
+	if (key == 'X') {
+		scale(1/1.1f,1.0f);
+		glutPostRedisplay();
+	}
+
 }
 
 
@@ -169,7 +221,6 @@ void display(void)
 	glHint( GL_LINE_SMOOTH_HINT, GL_NICEST );
 	glHint( GL_POLYGON_SMOOTH_HINT, GL_NICEST );
 
-
 	// render polygons
 	for (auto& polygon : svg_file.polygons) {
 		polygon.draw();
@@ -182,6 +233,22 @@ void display(void)
 	for (auto& line : svg_file.lines) {
 		line.draw();
 	}
+
+	for (auto& path : svg_file.paths) {
+		path.draw();
+	}
+
+	// use some culling for the texts ...
+	if (view_bottom - view_top < 10000) {
+		for (auto& text : svg_file.texts) {
+			if (view_top < text.getMaxY() && text.getMinY() < view_bottom) {
+				if (view_left < text.getMaxX() && text.getMinX() < view_right) {
+					text.draw();
+				}
+			}
+		}
+	}
+
 
 	// draw a bounding box
 //	glBegin(GL_POLYGON);
@@ -216,16 +283,60 @@ void main_function(int argc, char** argv)
 		svg_file.load(argv[1]);
 	}
 
+	// get image dimensions
+	float width = svg_file.get_width();
+	float height = svg_file.get_height();
+
+	float window_width = 2000;
+	float window_height = 1200;
+
+//	float window_width = 2000;
+//	float window_height = window_width / width   * height;
+
+std::cout << "ImgWidth:  " << width << "\n";
+std::cout << "ImgHeight: " << height << "\n";
+
+	height = width / window_width * window_height;
+
+
+std::cout << "Width:     " << width << "\n";
+std::cout << "Height:    " << height << "\n";
+std::cout << "WndWidth:  " << window_width << "\n";
+std::cout << "WndHeight: " << window_height << "\n";
+
+
 	// From the beginning, look at the entire SVG.
 	view_left   = 0;
-	view_right  = svg_file.get_width();
-	view_bottom = svg_file.get_height();
-	view_top    = 0;
+	view_right  = width;
+	view_bottom = 0;
+	view_top    = -height;
+
+
+//	// adjust image view-ratios to fit window size ratio
+//	float wnd_ratio = window_width / window_height;
+//
+//	float img_ratio = width / height;
+//
+//	if ((view_right * img_ratio) > height) {
+//		view_top = -view_right / img_ratio;
+//	} else {
+//		view_right = view_right * img_ratio;
+//	}
+//
+//	// centering image
+//	float offset_width = (width - view_right)/2;
+//	view_left += offset_width;
+//	view_right -= offset_width;
+//
+//	float offset_height = (height - (-view_top))/2;
+//	view_bottom -= offset_height;
+//	view_top += offset_height;
+
 
 	// Start OpenGL.
 	glutInit(&argc,argv);
 	glutInitDisplayMode (GLUT_DOUBLE | GLUT_RGBA );
-	glutInitWindowSize(500,500);
+	glutInitWindowSize(window_width,window_height);
 	glutCreateWindow("RapidSVG");
 	glutDisplayFunc(display);
 	glutKeyboardFunc(keyboard);

@@ -61,7 +61,10 @@ int hex_to_dec(char d1)
 
 void parse_color(const char* color, Color& c) {
 
-	if (std::strcmp(color, "black") == 0) {
+	if (std::strcmp(color, "none") == 0) {
+		c = NONE;
+	}
+	else if (std::strcmp(color, "black") == 0) {
 		c = BLACK;
 	}
 	else if (std::strcmp(color, "white") == 0) {
@@ -242,12 +245,6 @@ void SVGFile::load(const std::string& input_filename)
 						}
 					}
 				}
-
-//				std::cout << "Created polygon:\n";
-//				for(const auto& cur : polygon.points) {
-//					std::cout << "\t" << cur.first << "/" << cur.second << "\n";
-//				}
-
 			}
 			else if (strcmp(child->name(), "ellipse") == 0) {
 				// Add ellipse to the vector of ellipses
@@ -266,7 +263,6 @@ void SVGFile::load(const std::string& input_filename)
 					}
 					else if (strcmp(attr->name(), "rx") == 0) {
 						ellipse.rx = float(atof(attr->value()));
-						std::cout << "Updated rx = " << ellipse.rx << "\n";
 					}
 					else if (strcmp(attr->name(), "ry") == 0) {
 						ellipse.ry = float(atof(attr->value()));
@@ -295,6 +291,69 @@ void SVGFile::load(const std::string& input_filename)
 					}
 				}
 			}
+			else if (strcmp(child->name(), "path") == 0) {
+				// Add line to the collection of lines.
+				paths.push_back(Path());
+				Path& path = paths.back();
+
+				// Go through the line attributes.
+				for (xml_attribute<> *attr = child->first_attribute();
+						attr; attr = attr->next_attribute())
+				{
+					if (strcmp(attr->name(), "d") == 0) {
+						path.parse_points(attr->value());
+					}
+					else if (strcmp(attr->name(), "style") == 0) {
+						// Process this style string.
+						path.parse_style(attr->value());
+					}
+					else if (strcmp(attr->name(), "stroke") == 0) {
+						// Process fill attribute
+						if (strcmp(attr->value(), "none") == 0) {
+							path.borderLine = false;
+						} else {
+							path.borderLine = true;
+							parse_color(attr->value(), path.strokeColor);
+						}
+					}
+				}
+			}
+			else if (strcmp(child->name(), "text") == 0) {
+				// add a text to the collection of texts
+				texts.push_back(Text());
+				Text& text = texts.back();
+
+				//std::cout << "Node Value: " << child->value() << "\n";
+				text.text = child->value();
+
+				// Go through the text attributes.
+				for (xml_attribute<> *attr = child->first_attribute();
+						attr; attr = attr->next_attribute())
+				{
+					if (strcmp(attr->name(), "x") == 0) {
+						text.x = float(atof(attr->value()));
+					}
+					else if (strcmp(attr->name(), "y") == 0) {
+						text.y = float(atof(attr->value()));
+					}
+					else if (strcmp(attr->name(), "style") == 0) {
+						// Process this style string.
+						text.parse_style(attr->value());
+					}
+					else if (strcmp(attr->name(), "stroke") == 0) {
+						// Process fill attribute
+						if (strcmp(attr->value(), "none") == 0) {
+							text.borderLine = false;
+						} else {
+							text.borderLine = true;
+							parse_color(attr->value(), text.strokeColor);
+						}
+					}
+				}
+
+				// <text text-anchor="middle" x="1458.5" y="-151.4" font-family="Times Roman,serif" font-size="14.00">s4 sub s5</text>
+
+			}
 		}
 	}
 	end_time = ::omp_get_wtime();
@@ -302,8 +361,10 @@ void SVGFile::load(const std::string& input_filename)
 	
 	std::cerr << "SVG is " << this->width << " x " << this->height << "\n";
 	std::cerr << "Found " << lines.size() << " lines.\n";
+	std::cerr << "Found " << paths.size() << " paths.\n";
 	std::cerr << "Found " << polygons.size() << " polygons.\n";
 	std::cerr << "Found " << ellipses.size() << " ellipses.\n";
+	std::cerr << "Found " << texts.size() << " texts.\n";
 }
 
 }

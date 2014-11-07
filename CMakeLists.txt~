@@ -144,7 +144,6 @@ ADD_EXECUTABLE(rapidsvg
   path.cpp
   polygon.cpp
   ellipse.cpp
-  text.cpp
   svg_file.cpp)
 
 IF (NOT MSVC)

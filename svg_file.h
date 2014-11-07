@@ -8,8 +8,10 @@
 
 #include "color.h"
 #include "line.h"
+#include "path.h"
 #include "polygon.h"
 #include "ellipse.h"
+#include "text.h"
 
 namespace rapidsvg {
 
@@ -30,11 +32,17 @@ public:
 	// Lines in the SVG.
 	std::vector<Line> lines;
 
+	// Paths in the SVG
+	std::vector<Path> paths;
+
 	// Polygons in the SVG.
 	std::vector<Polygon> polygons;
 
 	// Ellipses in the SVG
 	std::vector<Ellipse> ellipses;
+
+	// Texts in the SVG
+	std::vector<Text> texts;
 
 private:
 	std::string filename;

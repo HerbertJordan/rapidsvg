@@ -1,4 +1,4 @@
-// Petter Strandmark 2013.
+// Herbert Jordan 2013.
 
 #include <cstdlib>
 #include <cstring>
@@ -6,27 +6,17 @@
 #include <stdexcept>
 
 #include "glut.h"
-#include "polygon.h"
+#include "path.h"
 #include "svg_file.h"
 
 namespace rapidsvg {
 
 
-void Polygon::draw() const {
+void Path::draw() const {
 
-	// render area
-	if (fill && fillColor) {
-		glBegin(GL_POLYGON);
-		glColor3f(fillColor.r, fillColor.g, fillColor.b);
-		for (auto& point : points) {
-			glVertex2f(point.first, point.second);
-		}
-		glEnd();
-	}
-
-	// render borderline
-	if (borderLine && strokeColor) {
-		glBegin(GL_LINE_LOOP);
+	// render line
+	if (borderLine) {
+		glBegin(GL_LINE_STRIP);
 		glColor3f(strokeColor.r, strokeColor.g, strokeColor.b);
 		for (auto& point : points) {
 			glVertex2f(point.first, point.second);
@@ -36,7 +26,7 @@ void Polygon::draw() const {
 
 }
 
-void Polygon::parse_style_entry(char* style)
+void Path::parse_style_entry(char* style)
 {
 	using namespace std;
 
@@ -58,7 +48,7 @@ void Polygon::parse_style_entry(char* style)
 	}
 }
 
-void Polygon::parse_style(char* style)
+void Path::parse_style(char* style)
 {
 	char* start = style;
 	while (true) {
@@ -77,13 +67,32 @@ void Polygon::parse_style(char* style)
 	}
 }
 
-void Polygon::parse_points(char* points)
+void Path::parse_points(char* points)
 {
+	/**
+	 * This is the most horrible code i ever wrote - do not read it, replace it asap
+	 */
+
+	//std::cout << "Parsing points: " << points << "\n";
 	char* start = points;
 	int pair_pos = 0;
 	std::pair<float, float> point;
+
+	// erase letters
+	char* pos = points;
+	while(*pos) {
+		if (*pos == 'M' || *pos == 'C') *pos = ' ';
+		pos++;
+	}
+	//std::cout << "Parsing points: " << points << "\n";
+
+	// move to start
+	while(*points==' ') {
+		points++;
+	}
+
 	while (*points) {
-		if (*points == '\0' || *points == ',' || *points == ' ') {
+		if (*points == '\0' || *points == ',' || *points == ' ' || *points == 'M' || *points == 'C') {
 			if (*points != '\0') {
 				*points = '\0';
 				points++;
@@ -105,6 +114,18 @@ void Polygon::parse_points(char* points)
 			points++;
 		}
 	}
+
+	// add final point
+	point.second = float(std::atof(start));
+	this->points.push_back(point);
+
+	/*
+	std::cout << "Path: ";
+	for(auto& cur : this->points) {
+		std::cout << "(" << cur.first << "," << cur.second << "), ";
+	}
+	std::cout << "\n";
+	*/
 }
 
 }
